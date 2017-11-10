@@ -22,6 +22,8 @@ import json
 import logging
 
 import sys
+# To make id
+import uuid
 
 # Date handling 
 import arrow   
@@ -31,7 +33,10 @@ from dateutil import tz  # For interpreting local times
 from pymongo import MongoClient
 
 import config
-CONFIG = config.configuration()
+if __name__ == "__main__":
+   CONFIG = config.configuration()
+else: 
+   CONFIG = config.configuration(proxied=True)
 
 
 MONGO_CLIENT_URL = "mongodb://{}:{}@{}:{}/{}".format(
@@ -66,35 +71,72 @@ except:
     sys.exit(1)
 
 
-
 ###
 # Pages
 ###
 
-@app.route("/")
-@app.route("/index")
+@app.route("/", methods=['GET', 'POST'])
+@app.route("/index", methods=['GET', 'POST'])
 def index():
   app.logger.debug("Main page entry")
   g.memos = get_memos()
   for memo in g.memos: 
-      app.logger.debug("Memo: " + str(memo))
+    app.logger.debug("Memo: " + str(memo))
+
   return flask.render_template('index.html')
 
 
-@app.route("/jstest")
-def jstest():
-    return flask.render_template('jstest.html')
+@app.route("/create")
+def create():
+    app.logger.debug("Create")
+    return flask.render_template('create.html')
 
-# We don't have an interface for creating memos yet
-# @app.route("/create")
-# def create():
-#     app.logger.debug("Create")
-#     return flask.render_template('create.html')
 
+@app.route("/send", methods=['POST'])
+def send():
+  app.logger.debug("send")
+  memo_text = request.form['memo_text']
+  date = request.form['datepicker']
+  app.logger.debug(date)
+  memo_id = uuid.uuid4()
+  app.logger.debug(memo_id)
+  
+  record = { "type": "dated_memo",
+        "text": str(memo_text),
+        "date": date,
+        "memo_id": str(memo_id)
+      }
+
+  app.logger.debug(record)
+  collection.insert(record)
+  record2 = {"type": "dated", "text": "moo"}
+  collection.insert(record2)
+  app.logger.debug(get_memos())
+  g.memos = get_memos()
+
+  return flask.render_template('index.html')
+
+
+@app.route("/delete", methods=['POST'])
+def delete():
+  memo_id = request.form["memo_id"]
+  app.logger.debug(memo_id)
+  collection.remove({"memo_id": memo_id}, 1)
+  # Refresh memos dict
+  app.logger.debug(db.Memos)
+  g.memos = get_memos()
+  app.logger.debug(get_memos())
+
+  return flask.render_template('delete.html')
+   
 
 @app.errorhandler(404)
 def page_not_found(error):
     app.logger.debug("Page not found")
+    #return flask.render_template('create.html')
+    #if request.method == 'GET':
+    #app.logger.debug("GET request")
+    # Access form
     return flask.render_template('page_not_found.html',
                                  badurl=request.base_url,
                                  linkback=url_for("index")), 404
@@ -117,6 +159,10 @@ def humanize_arrow_date( date ):
     try:
         then = arrow.get(date).to('local')
         now = arrow.utcnow().to('local')
+        diff = now - then
+        hours,remainder = divmod(diff.seconds,3600) # courtesy of OShadmon, StackOverflow
+        if diff.days == 0 and hours < now.hours:
+            human = "Today"
         if then.date() == now.date():
             human = "Today"
         else: 
@@ -140,15 +186,18 @@ def get_memos():
     """
     records = [ ]
     for record in collection.find( { "type": "dated_memo" } ):
-        record['date'] = arrow.get(record['date']).isoformat()
+
         del record['_id']
+        record['date'] = arrow.get(record['date']).isoformat()
         records.append(record)
+
     return records 
+
 
 
 if __name__ == "__main__":
     app.debug=CONFIG.DEBUG
     app.logger.setLevel(logging.DEBUG)
-    app.run(port=CONFIG.PORT,host="0.0.0.0")
+    app.run(port=CONFIG.PORT,host="0.0.0.0", debug=True)
 
     

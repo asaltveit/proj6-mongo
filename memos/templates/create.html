@@ -1,0 +1,35 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html><head>
+	<!-- From index.html -->
+	<!-- 'viewport' is used by bootstrap to respond to device size -->
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<!-- Javascript:  JQuery from a content distribution network (CDN) -->
+	<script
+		src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js">
+	</script>
+
+	<!-- Bootstrap includes javascript and css  (must follow jquery) -->
+	<link rel="stylesheet"
+		href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+	<script
+    	src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js">
+	</script>
+
+	<!-- For date picker -->
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+	<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+</head>
+<body>
+	<form action="/send" method="post">
+		<p> Date: <input id="date" type="date" name="datepicker"> </p>
+		<textarea type="text" name="memo_text" style="font-size:13pt;height:200px;width:200px;"></textarea>
+
+		<input type="submit" value="Save" id="save_button"/>
+	</form>
+
+
+</body>
+</html>

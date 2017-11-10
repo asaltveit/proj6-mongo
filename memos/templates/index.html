@@ -23,8 +23,8 @@
 
 </head>
 <body>
-<div class="container">
 
+<div class="container">
 <!-- Flashed messages before content -->
 {% with messages = get_flashed_messages() %}
   {% if messages %}
@@ -36,20 +36,29 @@
   {% endif %}
 {% endwith %}
 
+<!-- 'Create Memo' button to redirect to create page-->
+<form action="/create" method="get">
+  <input type="submit" value="Create Memo" id="create_memo_button"/>
+</form>
 <h1>Memos</h1>
 
 {% if g.memos %}
-    {% for memo in g.memos %}
-  <div class="memo">
-  <div class="row">
-  <div class="col-md-2">
-    {{ memo.date | humanize }}
-  </div>
-  <div class="col-md-10">
-    {{ memo.text }}
-  </div>
-  </div> <!-- row -->
-  </div> <!-- memo -->
+  {% for memo in g.memos | sort(attribute='date') %}
+    <div class="memo">
+    <div class="row">
+    <div class="col-md-2">
+      {{ memo.date | humanize }}
+    </div>
+    <div class="col-md-10">
+      {{ memo.text }}
+    </div>
+    <!-- delete button -->
+    <form action="/delete" method="POST">
+    <input type="hidden" name="memo_id" value="{{memo.memo_id}}"></input>
+    <input type="submit" value="Delete" id="delete_button"/>
+    </form>
+    </div> <!-- row -->
+    </div> <!-- memo -->
   {% endfor %}
 {% else %}
   <p>No memos for you. </p>  
